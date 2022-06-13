@@ -5,7 +5,7 @@ void main(void) {
     char msg_lcd[10];
     float temp = 0.0, celc = 0.0;
     
-    TRISA=0x01;
+    TRISA=0x00;
     TRISB=0x00;
     TRISC=0x00;
     i2c_master(100000);

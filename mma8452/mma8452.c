@@ -1,6 +1,6 @@
 #include "main.h"
 
-const uint8_t ADDRESS = 0x1C;
+const uint8_t ADDRESS = 0x1C<<1;
 
 //hardware registers
 
@@ -14,8 +14,8 @@ const uint8_t REG_DATA_CFG = 0x0E;
 const uint8_t REG_CTRL_REG1 = 0x2A;
 
 // Set the range and precision for the data 
-const uint8_t range_config = 0x01; // 0x00 for ±2g, 0x01 for ±4g, 0x02 for ±8g
-const float count = 2048; // 4096 for ±2g, 2048 for ±4g, 1024 for ±8g
+const uint8_t range_config = 0x00; // 0x00 for ±2g, 0x01 for ±4g, 0x02 for ±8g
+const float count = 4096; // 4096 for ±2g, 2048 for ±4g, 1024 for ±8g
 
 float mma8452_convert_accel(uint16_t raw_accel) {
     float acceleration;
@@ -27,7 +27,7 @@ float mma8452_convert_accel(uint16_t raw_accel) {
     } else {
         acceleration = (float) raw_accel / count;
     }
-    acceleration *= 9.81f;
+    acceleration *= 98.1f;
     return acceleration;
 }
 
@@ -39,11 +39,11 @@ void mma8452_write_reg(uint8_t reg_addr, uint8_t data) {
     i2c_stop();
 }
 
-uint8_t mma8452_get_status(uint8_t reg_addr) {
+uint8_t mma8452_get_status(void) {
     uint8_t read = 0;
     i2c_start();
     i2c_sendaddr(ADDRESS + 0);
-    i2c_write(reg_addr);
+    i2c_write(0x00);
     i2c_repstart();
     i2c_sendaddr(ADDRESS + 1);                   
 	read = i2c_read(0);                        
@@ -62,7 +62,7 @@ uint16_t mma8452_get_result(uint8_t reg_addr) {
 	read1 = i2c_read(1);
     read2 = i2c_read(0);
     i2c_stop();
-    ressult = (read1 << 8) | read2;
+    ressult = (read1 << 4) | (read2 >> 4);
     return ressult;
 }
 
@@ -83,19 +83,24 @@ void main(void) {
     mma8452_write_reg(REG_DATA_CFG, range_config);
     mma8452_write_reg(REG_CTRL_REG1, 1);
     
+    mma8452_write_reg(REG_CTRL_REG1, 0);
+    mma8452_write_reg(REG_CTRL_REG1, 0b00011001);
+    
     while(1){
-        
-        res_x = mma8452_get_result(REG_X_MSB);
-        res_y = mma8452_get_result(REG_Y_MSB);
-        res_z = mma8452_get_result(REG_Z_MSB);
-        
-        real_x = mma8452_convert_accel(res_x);
-        real_y = mma8452_convert_accel(res_y);
-        real_z = mma8452_convert_accel(res_z);
-        
-        sprintf(buff, "%.3f,%.3f,%.3f\n", real_x, real_y, real_z);
-        
-        uart_sendstr(buff);
+        if(mma8452_get_status() & 0x07){
+            res_x = mma8452_get_result(REG_X_MSB);
+            res_y = mma8452_get_result(REG_Y_MSB);
+            res_z = mma8452_get_result(REG_Z_MSB);
+
+            real_x = mma8452_convert_accel(res_x);
+            real_y = mma8452_convert_accel(res_y);
+            real_z = mma8452_convert_accel(res_z);
+
+            sprintf(buff, "%.3f,%.3f,%.3f\n", real_x, real_y, real_z);
+//            sprintf(buff, "%d,%d,%d\n", res_x, res_y, res_z);
+
+            uart_sendstr(buff);
+        }
     }
     return;
 }

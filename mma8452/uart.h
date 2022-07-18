@@ -1,6 +1,8 @@
 #include <xc.h>
 #include <stdint.h>
 
+#define _XTAL_FREQ 4000000*4
+
 void uart_set();
 
 void uart_send(uint8_t art_s);

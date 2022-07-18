@@ -5,7 +5,7 @@
 void uart_set(){
     TRISC7=1;  // Use appropriate pin of your pic
     TRISC6=0;  // Use appropriate pin of your pic
-    SPBRG = 25;  // See datasheet for value
+    SPBRG = ((_XTAL_FREQ/115200)/16);  // See datasheet for value
     TXSTA=0x24;		
 	RCSTA=0x90;
 }

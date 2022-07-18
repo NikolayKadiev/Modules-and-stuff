@@ -1,6 +1,6 @@
 #include <xc.h>
 #include <stdint.h>
-#define _XTAL_FREQ 4000000
+#define _XTAL_FREQ 4000000*4
 
 void i2c_master(const unsigned long I2C_c);
 

@@ -4,7 +4,8 @@
 // 'C' source line config statements
 
 // CONFIG1H
-#pragma config OSC = XT         // Oscillator Selection bits (XT oscillator)
+//#pragma config OSC = XT         // Oscillator Selection bits (XT oscillator)
+#pragma config OSC = HSPLL      // Oscillator Selection bits (HS oscillator with PLL enabled/Clock frequency = (4 x FOSC))
 #pragma config OSCS = OFF       // Oscillator System Clock Switch Enable bit (Oscillator system clock switch option is disabled (main oscillator is source))
 
 // CONFIG2L
@@ -60,7 +61,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#define _XTAL_FREQ 4000000
+#define _XTAL_FREQ 4000000*4
 #include "I2C_op.h"
 #include "uart.h"
 

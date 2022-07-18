@@ -17,19 +17,22 @@ const uint8_t REG_CTRL_REG1 = 0x2A;
 const uint8_t range_config = 0x00; // 0x00 for ±2g, 0x01 for ±4g, 0x02 for ±8g
 const float count = 4096; // 4096 for ±2g, 2048 for ±4g, 1024 for ±8g
 
-float mma8452_convert_accel(uint16_t raw_accel) {
+float mma8451_convert_accel(uint16_t raw_acc) {
     float acceleration;
+    uint16_t raw_accel = raw_acc;
     // Acceleration is read as a multiple of g (gravitational acceleration on the Earth's surface)
     // Check if acceleration < 0 and convert to decimal accordingly
-    if ((raw_accel & 0x2000) == 0x2000) {
-        raw_accel &= 0x1FFF;
-        acceleration = (-8192 + (float) raw_accel) / count;
-    } else {
+    if ((raw_accel & 0x800) == 0x800) {
+        raw_accel &= 0x7FF;
+        acceleration = (-2046 + (float) raw_accel) / count;
+    }
+    else {
         acceleration = (float) raw_accel / count;
     }
-    acceleration *= 98.1f;
+    acceleration *= 9.81f;
     return acceleration;
 }
+
 
 void mma8452_write_reg(uint8_t reg_addr, uint8_t data) {
     i2c_start();
@@ -67,9 +70,9 @@ uint16_t mma8452_get_result(uint8_t reg_addr) {
 }
 
 void main(void) {
-    uint8_t res_x =0, res_y =0, res_z =0; 
-    float real_x = 0.0, real_y = 0.0, real_z = 0.0;
-    uint8_t buff[30];
+    uint16_t res_x = 0, res_y = 0, res_z = 0; 
+    float x_acc = 0.0, y_acc = 0.0, z_acc = 0.0;
+    uint8_t buff[100];
     
     TRISA=0x00;
     TRISB=0x00;
@@ -91,13 +94,13 @@ void main(void) {
             res_x = mma8452_get_result(REG_X_MSB);
             res_y = mma8452_get_result(REG_Y_MSB);
             res_z = mma8452_get_result(REG_Z_MSB);
+            
+            x_acc = mma8451_convert_accel(res_x);
+            y_acc = mma8451_convert_accel(res_y);
+            z_acc = mma8451_convert_accel(res_z);
 
-            real_x = mma8452_convert_accel(res_x);
-            real_y = mma8452_convert_accel(res_y);
-            real_z = mma8452_convert_accel(res_z);
-
-            sprintf(buff, "%.3f,%.3f,%.3f\n", real_x, real_y, real_z);
-//            sprintf(buff, "%d,%d,%d\n", res_x, res_y, res_z);
+            sprintf(buff, "x= %.3f\t y= %.3f\tz= %.3f\n", x_acc, y_acc, z_acc);
+//            sprintf(buff, "x= %d\t y= %d\tz= %d\n", res_x, res_y, res_z);
 
             uart_sendstr(buff);
         }

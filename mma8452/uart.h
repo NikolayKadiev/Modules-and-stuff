@@ -1,6 +1,5 @@
 #include <xc.h>
 #include <stdint.h>
-
 #include "clock_config.h"
 
 void uart_set();

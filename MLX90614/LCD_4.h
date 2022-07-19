@@ -1,6 +1,6 @@
 #include <xc.h>
 #include <stdint.h>
-#define _XTAL_FREQ 4000000
+#include "clock_config.h"
 
 // Use a spare PORT of your pic
 #define EN_LCD   RB3

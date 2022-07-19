@@ -58,6 +58,7 @@
 // Use project enums instead of #define for ON and OFF.
 
 #include "clock_config.h"
+#include <xc.h>
 #include <string.h>
 #include <stdio.h>
 #include "I2C_op.h"

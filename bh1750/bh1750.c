@@ -1,6 +1,6 @@
 #include "main.h"
 
-uint8_t sensor_adr = 0x23;
+uint8_t sensor_adr = 0x23 << 1;
 
 void main(void) {
     uint8_t data_hi = 0, data_lo = 0;

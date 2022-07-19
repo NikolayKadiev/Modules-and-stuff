@@ -1,7 +1,7 @@
 #include <xc.h>
 #include <stdint.h>
 
-#define _XTAL_FREQ 4000000*4
+#include "clock_config.h"
 
 void uart_set();
 

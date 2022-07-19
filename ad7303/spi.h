@@ -1,5 +1,6 @@
 #include <xc.h>
 #include <stdint.h>
+#include "clock_config.h"
 
 void spi_master(uint8_t mode);
 

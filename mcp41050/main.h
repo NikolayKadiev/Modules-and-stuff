@@ -60,7 +60,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#define _XTAL_FREQ 4000000
+#include "clock_config.h"
 #include "adc_op.h"
 #include "spi.h"
 #include "LCD_4.h"

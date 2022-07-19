@@ -61,7 +61,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#define _XTAL_FREQ 4000000*4
+#include "clock_config.h"
 #include "I2C_op.h"
 #include "uart.h"
 

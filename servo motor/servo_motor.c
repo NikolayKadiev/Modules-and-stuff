@@ -1,45 +1,41 @@
 #include "main.h"
 
-#define OUT_S RB7
+#define OUT_S PORTBbits.RB7
 
 void servo_set(){
     CCP1CON=0b00001010;
-    RD16=1;
+    T1CON = 0x80;
     OUT_S=0;
-    OUT_S=1;
-    OUT_S=0;
-    __delay_ms(100);
-    return;
 }
 
 void servo_update(uint16_t puls,uint16_t paus){
       OUT_S=1;
-      TMR1L=0x0000;
-      CCPR1=puls;
-      TMR1ON=1;
-      while(CCP1IF==0){}
-      CCP1IF=0;
-      TMR1ON=0;
+      CCPR1H = puls >> 8;
+      CCPR1L = puls & 0xFF;
+      TMR1=0x0000;
+      T1CONbits.TMR1ON=1;
+      while(PIR1bits.CCP1IF==0){}
+      PIR1bits.CCP1IF=0;
+      T1CONbits.TMR1ON=0;
       OUT_S=0;
-      TMR1L=0x0000;
-      CCPR1=paus;
-      TMR1ON=1;
-      while(CCP1IF==0){}
-      CCP1IF=0;
-      TMR1ON=0;
-      return;
+      CCPR1H = paus >> 8;
+      CCPR1L = paus & 0xFF;
+      TMR1=0x0000;
+      T1CONbits.TMR1ON=1;
+      while(PIR1bits.CCP1IF==0){}
+      PIR1bits.CCP1IF=0;
+      T1CONbits.TMR1ON=0;
 }
 
 void main(void) {
-    uint16_t pul, pau, per;
-    int stepp = 10;
+    uint16_t pul, pau, per = 1;
+    uint8_t stepp = 25;
     TRISA=0x00;
     TRISB=0x00;
     TRISC=0x00;
     
-    pau=19000;
-    pul=1000;
-    per=0;
+    pau=20200;
+    pul=500;
     
     servo_set();
     
@@ -47,15 +43,20 @@ void main(void) {
       for(int i=0; i<5; i++){
           servo_update(pul,pau);
       }
-      pau-=stepp;
-      pul+=stepp;
-      if(pul == 700){
-          stepp = 10;
+      if(pul < 500) {
+          per = 0;
       }
-      if(pul == 2300){
-          stepp = -10;
+      if(pul > 2400) {
+          per = 1;
+      }
+      if(per == 0){
+          pau-=stepp;
+          pul+=stepp;
+      }
+      if(per == 1){
+          pau+=stepp;
+          pul-=stepp;
       }
   }
     return;
 }
-

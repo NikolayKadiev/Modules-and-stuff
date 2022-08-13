@@ -61,4 +61,4 @@
 #include <string.h>
 #include <stdio.h>
 #define _XTAL_FREQ 4000000
-
+#include "adc_op.h"

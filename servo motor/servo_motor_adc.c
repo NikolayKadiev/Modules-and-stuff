@@ -41,7 +41,7 @@ void main(void) {
     adc_set();
     
   while(1){
-      per = adc_read(0);
+      per = adc_read();
       per = per * 2;
       for(int i=0; i<5; i++){
           servo_update(pul + per, pau - per);

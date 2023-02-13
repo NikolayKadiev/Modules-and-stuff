@@ -55,7 +55,6 @@ void main(void){
 	};
 
     board_init();
-    tusb_init();  
 
     gpio_init(led_pin);
     gpio_set_dir(led_pin, GPIO_OUT);

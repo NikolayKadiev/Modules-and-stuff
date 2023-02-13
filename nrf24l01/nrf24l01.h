@@ -113,9 +113,11 @@ typedef struct {
 //functions for the module
 void nrf24l01_write_reg(uint8_t reg_addr, uint8_t reg_value);
 uint8_t nrf24l01_read_reg(uint8_t reg_addr);
-uint8_t nrf24l01_get_pl_len(void);
-void nrf24l01_write_buf(uint8_t *buf, uint8_t lenght);
-void nrf24l01_read_buf(uint8_t *buf, uint8_t lenght);
+uint8_t nrf24l01_get_pl(void);
+uint8_t nrf24l01_get_pl_len(uint8_t pipe);
+void nrf24l01_write_pl(uint8_t *buf, uint8_t lenght);
+void nrf24l01_read_pl(uint8_t *buf, uint8_t lenght);
+void nrf24l01_write_addr(uint8_t reg_addr, uint8_t *buf);
 void nrf24l01_powef_on(void);
 void nrf24l01_power_off(void);
 void nrf24l01_set_ptx(void);

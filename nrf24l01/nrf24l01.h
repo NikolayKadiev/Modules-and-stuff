@@ -67,8 +67,8 @@
 #define SETUP_AW_4_bytes 0x02
 #define SETUP_AW_5_bytes 0x03
 //setup_retr
-#define ARD 7
-#define ARC 3
+#define ARD 4
+#define ARC 0
 //rf_setup
 #define PLL_LOCK 4
 #define RF_DR_1M 0x00

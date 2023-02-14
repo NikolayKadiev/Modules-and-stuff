@@ -6,6 +6,7 @@
 #define NRF24L01P 1
 
 #define NRF_IN_USE NRF24L01
+
 // Commands for the module
 #define R_register 0x00
 #define W_register 0x20
@@ -62,19 +63,19 @@
 #define PRIM_RX_PTX 0x00
 #define PRIM_RX_PRX 0x01
 //en_aa
-#define ENAA_P5 5 
-#define ENAA_P4 4 
-#define ENAA_P3 3 
-#define ENAA_P2 2 
-#define ENAA_P1 1 
-#define ENAA_P0 0 
+#define ENAA_P5 0x20 
+#define ENAA_P4 0x10
+#define ENAA_P3 0x08 
+#define ENAA_P2 0x04 
+#define ENAA_P1 0x02 
+#define ENAA_P0 0x01 
 //en_rxaddr
-#define ERX_P5 5
-#define ERX_P4 4
-#define ERX_P3 3
-#define ERX_P2 2
-#define ERX_P1 1
-#define ERX_P0 0 
+#define ERX_P5 0x20
+#define ERX_P4 0x10
+#define ERX_P3 0x08
+#define ERX_P2 0x04
+#define ERX_P1 0x02
+#define ERX_P0 0x01
 //setup_aw
 #define SETUP_AW_3_bytes 0x01
 #define SETUP_AW_4_bytes 0x02
@@ -83,14 +84,18 @@
 #define ARD 4
 #define ARC 0
 //rf_setup
-#define PLL_LOCK 4
+#if (NRF_IN_USE == NRF24L01P)
+#define RF_DR_250k 0x20
+#define CONT_WAVE 0x80
+#endif
+#define PLL_LOCK 0x10
 #define RF_DR_1M 0x00
 #define RF_DR_2M 0x08
 #define RF_PWR_18 0x00
 #define RF_PWR_12 0x02
 #define RF_PWR_6 0x04
 #define RF_PWR_0 0x06
-#define LNA_HCURR 0
+#define LNA_HCURR 0x01
 //status
 #define RX_DR 6
 #define TX_DS 5

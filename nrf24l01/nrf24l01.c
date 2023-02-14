@@ -89,5 +89,9 @@ void nrf24l01_config(nrf24l01_config_t conf_data){
     nrf24l01_write_addr(RX_ADDR_P1, conf_data.reg_rx_addr_p1);
     nrf24l01_write_reg(RX_PW_P0, conf_data.reg_rx_pw_p0);
     nrf24l01_write_reg(RX_PW_P1, conf_data.reg_rx_pw_p1);
+    #if (NRF_IN_USE == NRF24L01P)
+    nrf24l01_write_reg(DYNPD, conf_data.reg_dynpd);
+    nrf24l01_write_reg(FEATURE, conf_data.reg_feature);
+    #endif
     nrf24l01_power_on();
 }

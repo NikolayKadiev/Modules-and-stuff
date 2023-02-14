@@ -27,8 +27,8 @@ uint8_t nrf24l01_get_pl_len(uint8_t pipe){
 }
 
 void nrf24l01_write_pl(uint8_t *buf, uint8_t lenght){
-    uint8_t to_send = W_TX_payload;
-    spi_write_blocking(spi1, &to_send, 1);
+    // uint8_t to_send = W_TX_payload;
+    // spi_write_blocking(spi1, &to_send, 1);
     spi_write_blocking(spi1, buf, lenght);
 }
 
@@ -45,7 +45,7 @@ void nrf24l01_write_addr(uint8_t reg_addr, uint8_t *buf){
     to_send[3] = *(buf+2);
     to_send[4] = *(buf+3);
     to_send[5] = *(buf+4);
-    spi_write_blocking(spi1, buf, 6);
+    spi_write_blocking(spi1, to_send, 6);
 }
 
 void nrf24l01_power_on(void){

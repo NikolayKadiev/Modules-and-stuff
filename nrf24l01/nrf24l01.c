@@ -43,7 +43,7 @@ void nrf24l01_write_addr(uint8_t reg_addr, uint8_t *buf){
     spi_write_blocking(spi1, buf, 5);
 }
 
-void nrf24l01_powef_on(void){
+void nrf24l01_power_on(void){
     uint8_t trans;
     trans = nrf24l01_read_reg(CONFIG);
     trans |= 1 << PWR_UP;
@@ -84,5 +84,5 @@ void nrf24l01_config(nrf24l01_config_t conf_data){
     nrf24l01_write_addr(RX_ADDR_P1, conf_data.reg_rx_addr_p1);
     nrf24l01_write_reg(RX_PW_P0, conf_data.reg_rx_pw_p0);
     nrf24l01_write_reg(RX_PW_P1, conf_data.reg_rx_pw_p1);
-    nrf24l01_powef_on();
+    nrf24l01_power_on();
 }

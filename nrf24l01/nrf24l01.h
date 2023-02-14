@@ -2,6 +2,10 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 
+#define NRF24L01 0
+#define NRF24L01P 1
+
+#define NRF_IN_USE NRF24L01
 // Commands for the module
 #define R_register 0x00
 #define W_register 0x20
@@ -11,6 +15,11 @@
 #define Flush_Rx 0xE2
 #define Reuse_Tx_pl 0xE3
 #define NOP 0xFF
+#if (NRF_IN_USE == NRF24L01P)
+#define R_RX_PL_WID 0x60
+#define W_ACK_PAYLOAD 0xA8
+#define W_TX_PAYLOAD_NOACK 0xB0
+#endif
 
 //Regiter address for the module
 #define CONFIG 0x00
@@ -37,6 +46,10 @@
 #define RX_PW_P4 0x15
 #define RX_PW_P5 0x16
 #define FIFO_STATUS 0x17
+#if (NRF_IN_USE == NRF24L01P)
+#define DYNPD 0x1C
+#define FEATURE 0x1D
+#endif
 
 // Bit masks for the module
 //config reg
@@ -94,6 +107,20 @@
 #define FIFO_RX_FULL 1 
 #define FIFO_RX_EMPTY 0
 
+#if (NRF_IN_USE == NRF24L01P)
+//dynpd
+#define DPL_P5 0x20
+#define DPL_P4 0x10
+#define DPL_P3 0x08
+#define DPL_P2 0x04
+#define DPL_P1 0x02
+#define DPL_P0 0x01
+//feature
+#define EN_DPL 0x04
+#define EN_ACK_PAYd 0x02
+#define EN_DYN_ACK 0x01
+#endif
+
 //struct for module
 typedef struct {
     uint8_t reg_config;
@@ -108,6 +135,10 @@ typedef struct {
     uint8_t reg_tx_addr[5];
     uint8_t reg_rx_pw_p0;
     uint8_t reg_rx_pw_p1;
+    #if (NRF_IN_USE == NRF24L01P)
+    uint8_t reg_dynpd;
+    uint8_t reg_feature;
+    #endif
 } nrf24l01_config_t;
 
 //functions for the module

@@ -38,9 +38,14 @@ void nrf24l01_read_pl(uint8_t *buf, uint8_t lenght){
 }
 
 void nrf24l01_write_addr(uint8_t reg_addr, uint8_t *buf){
-    uint8_t to_send = W_register | reg_addr;
-    spi_write_blocking(spi1, &to_send, 1);
-    spi_write_blocking(spi1, buf, 5);
+    uint8_t to_send[6];
+    to_send[0] = W_register | reg_addr;
+    to_send[1] = *(buf+0);
+    to_send[2] = *(buf+1);
+    to_send[3] = *(buf+2);
+    to_send[4] = *(buf+3);
+    to_send[5] = *(buf+4);
+    spi_write_blocking(spi1, buf, 6);
 }
 
 void nrf24l01_power_on(void){

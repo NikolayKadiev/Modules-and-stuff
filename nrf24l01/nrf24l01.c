@@ -8,14 +8,18 @@ void nrf24l01_write_reg(uint8_t reg_addr, uint8_t reg_value){
 }
 
 uint8_t nrf24l01_read_reg(uint8_t reg_addr){
-    uint8_t to_send, to_receive;
-    to_send = R_register | reg_addr;
-    spi_write_read_blocking(spi1, &to_send, &to_receive, 1);
-    return to_receive;
+    uint8_t to_send[2], to_receive[2];
+    to_send[0] = R_register | reg_addr;
+    to_send[1] = NOP;
+    spi_write_read_blocking(spi1, to_send, to_receive, 2);
+    return to_receive[1];
 }
 
 uint8_t nrf24l01_get_pl(void){
-    return ((nrf24l01_read_reg(STATUS) >> 1) & 0x07);
+    uint8_t to_send, to_receive;
+    to_send = NOP;
+    spi_write_read_blocking(spi1, &to_send, &to_receive, 1);
+    return (to_receive >> 1) & 7;
 }
 
 uint8_t nrf24l01_get_pl_len(uint8_t pipe){

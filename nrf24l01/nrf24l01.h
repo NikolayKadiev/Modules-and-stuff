@@ -154,7 +154,7 @@ uint8_t nrf24l01_get_pl_len(uint8_t pipe);
 void nrf24l01_write_pl(uint8_t *buf, uint8_t lenght);
 void nrf24l01_read_pl(uint8_t *buf, uint8_t lenght);
 void nrf24l01_write_addr(uint8_t reg_addr, uint8_t *buf);
-void nrf24l01_powef_on(void);
+void nrf24l01_power_on(void);
 void nrf24l01_power_off(void);
 void nrf24l01_set_ptx(void);
 void nrf24l01_set_prx(void);

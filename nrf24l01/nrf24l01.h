@@ -1,6 +1,14 @@
 #include <stdint.h>
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
+#include "hardware/gpio.h"
+
+#define SPI_RX_PIN  12
+#define SPI_TX_PIN  11
+#define SPI_SCK_PIN 10
+#define SPI_CSN_PIN	13
+#define PIN_CE		9
+#define PIN_DRDY    8
 
 #define NRF24L01 0
 #define NRF24L01P 1
@@ -54,12 +62,12 @@
 
 // Bit masks for the module
 //config reg
-#define MASK_RX_DR 0x06
-#define MASK_TX_DS 0x05
-#define MASK_MAX_RT 0x04
-#define EN_CRC 0x03
-#define CRC 0x02
-#define PWR_UP 0x01
+#define MASK_RX_DR 0x40
+#define MASK_TX_DS 0x20
+#define MASK_MAX_RT 0x10
+#define EN_CRC 0x08
+#define CRC 0x04
+#define PWR_UP 0x02
 #define PRIM_RX_PTX 0x00
 #define PRIM_RX_PRX 0x01
 //en_aa

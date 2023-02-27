@@ -2,23 +2,29 @@
 
 void nrf24l01_write_reg(uint8_t reg_addr, uint8_t reg_value){
     uint8_t to_send[2];
+	gpio_put(SPI_CSN_PIN, 0);
     to_send[0] = W_register | reg_addr;
     to_send[1] = reg_value;
     spi_write_blocking(spi1, to_send, 2);
+	gpio_put(SPI_CSN_PIN, 1);
 }
 
 uint8_t nrf24l01_read_reg(uint8_t reg_addr){
     uint8_t to_send[2], to_receive[2];
+	gpio_put(SPI_CSN_PIN, 0);
     to_send[0] = R_register | reg_addr;
     to_send[1] = NOP;
     spi_write_read_blocking(spi1, to_send, to_receive, 2);
+	gpio_put(SPI_CSN_PIN, 1);
     return to_receive[1];
 }
 
 uint8_t nrf24l01_get_pl(void){
     uint8_t to_send, to_receive;
+	gpio_put(SPI_CSN_PIN, 0);
     to_send = NOP;
     spi_write_read_blocking(spi1, &to_send, &to_receive, 1);
+	gpio_put(SPI_CSN_PIN, 1);
     return (to_receive >> 1) & 7;
 }
 
@@ -29,16 +35,21 @@ uint8_t nrf24l01_get_pl_len(uint8_t pipe){
 void nrf24l01_write_pl(uint8_t *buf, uint8_t lenght){
     // uint8_t to_send = W_TX_payload;
     // spi_write_blocking(spi1, &to_send, 1);
+	gpio_put(SPI_CSN_PIN, 0);
     spi_write_blocking(spi1, buf, lenght);
+	gpio_put(SPI_CSN_PIN, 1);
 }
 
 void nrf24l01_read_pl(uint8_t *buf, uint8_t lenght){
     uint8_t to_send = R_RX_pyload;
+	gpio_put(SPI_CSN_PIN, 0);
     spi_write_read_blocking(spi1, &to_send, buf, lenght);
+	gpio_put(SPI_CSN_PIN, 1);
 }
 
 void nrf24l01_write_addr(uint8_t reg_addr, uint8_t *buf){
     uint8_t to_send[6];
+	gpio_put(SPI_CSN_PIN, 0);
     to_send[0] = W_register | reg_addr;
     to_send[1] = *(buf+0);
     to_send[2] = *(buf+1);
@@ -46,19 +57,20 @@ void nrf24l01_write_addr(uint8_t reg_addr, uint8_t *buf){
     to_send[4] = *(buf+3);
     to_send[5] = *(buf+4);
     spi_write_blocking(spi1, to_send, 6);
+	gpio_put(SPI_CSN_PIN, 1);
 }
 
 void nrf24l01_power_on(void){
     uint8_t trans;
     trans = nrf24l01_read_reg(CONFIG);
-    trans |= 1 << PWR_UP;
+    trans |= 1 << 1;
     nrf24l01_write_reg(CONFIG, trans);
 }
 
 void nrf24l01_power_off(void){
     uint8_t trans;
     trans = nrf24l01_read_reg(CONFIG);
-    trans &= ~(1 << PWR_UP);
+    trans &= ~(1 << 1);
     nrf24l01_write_reg(CONFIG, trans);
 }
 
@@ -72,7 +84,7 @@ void nrf24l01_set_ptx(void){
 void nrf24l01_set_prx(void){
     uint8_t trans;
     trans = nrf24l01_read_reg(CONFIG);
-    trans &=  ~(PRIM_RX_PTX);
+    trans &=  ~(PRIM_RX_PRX);
     nrf24l01_write_reg(CONFIG, trans);
 }
 
@@ -93,5 +105,4 @@ void nrf24l01_config(nrf24l01_config_t conf_data){
     nrf24l01_write_reg(DYNPD, conf_data.reg_dynpd);
     nrf24l01_write_reg(FEATURE, conf_data.reg_feature);
     #endif
-    nrf24l01_power_on();
 }

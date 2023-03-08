@@ -14,10 +14,10 @@ const uint8_t REG_DATA_CFG = 0x0E;
 const uint8_t REG_CTRL_REG1 = 0x2A;
 
 // Set the range and precision for the data 
-const uint8_t range_config = 0x00; // 0x00 for ±2g, 0x01 for ±4g, 0x02 for ±8g
-const float count = 4096; // 4096 for ±2g, 2048 for ±4g, 1024 for ±8g
+const uint8_t range_config = 0x00; // 0x00 for Â±2g, 0x01 for Â±4g, 0x02 for Â±8g
+const float count = 4096; // 4096 for Â±2g, 2048 for Â±4g, 1024 for Â±8g
 
-float mma8451_convert_accel(uint16_t raw_acc) {
+float mma8452_convert_accel(uint16_t raw_acc) {
     float acceleration;
     uint16_t raw_accel = raw_acc;
     // Acceleration is read as a multiple of g (gravitational acceleration on the Earth's surface)
@@ -95,9 +95,9 @@ void main(void) {
             res_y = mma8452_get_result(REG_Y_MSB);
             res_z = mma8452_get_result(REG_Z_MSB);
             
-            x_acc = mma8451_convert_accel(res_x);
-            y_acc = mma8451_convert_accel(res_y);
-            z_acc = mma8451_convert_accel(res_z);
+            x_acc = mma8452_convert_accel(res_x);
+            y_acc = mma8452_convert_accel(res_y);
+            z_acc = mma8452_convert_accel(res_z);
 
             sprintf(buff, "x= %.3f\t y= %.3f\tz= %.3f\n", x_acc, y_acc, z_acc);
 //            sprintf(buff, "x= %d\t y= %d\tz= %d\n", res_x, res_y, res_z);

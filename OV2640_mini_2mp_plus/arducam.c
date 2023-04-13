@@ -29,7 +29,7 @@ void picoSystemInit(){
     // Make the I2C pins available to picotool
     bi_decl( bi_2pins_with_func(PIN_SDA, PIN_SCL, GPIO_FUNC_I2C));
      // This example will use SPI0 at 0.5MHz.
-    spi_init(SPI_PORT, 500*1000);
+    spi_init(SPI_PORT, 8*1000*1000);
     gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
     gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);
     gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);

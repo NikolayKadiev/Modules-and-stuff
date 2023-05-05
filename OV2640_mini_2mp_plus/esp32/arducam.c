@@ -285,17 +285,15 @@ void singleCapture(void){
     spi_device_transmit(spi, &rx);
     uart_write_bytes(UART_NUM_0, value, 64);
     if(len_out < 64){
+        rx.length=len_out*8;
+        rx.rxlength=len_out*8;
+        spi_device_transmit(spi, &rx);
+        uart_write_bytes(UART_NUM_0, value, len_out);
         break;
     }
     else{
         len_out -= 64;
     }
-   }
-   if(len_out > 0){
-        rx.length=len_out*8;
-        rx.rxlength=len_out*8;
-        spi_device_transmit(spi, &rx);
-        uart_write_bytes(UART_NUM_0, value, len_out);
    }
    cs_deselect();
    free(value);

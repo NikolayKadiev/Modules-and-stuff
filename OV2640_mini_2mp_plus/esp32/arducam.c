@@ -284,12 +284,13 @@ void singleCapture(void){
    while(1){
     spi_device_transmit(spi, &rx);
     uart_write_bytes(UART_NUM_0, value, 64);
+    if(len_out == 0){
+        break;
+    }
     if(len_out < 64){
         rx.length=len_out*8;
         rx.rxlength=len_out*8;
-        spi_device_transmit(spi, &rx);
-        uart_write_bytes(UART_NUM_0, value, len_out);
-        break;
+        len_out = 0;
     }
     else{
         len_out -= 64;

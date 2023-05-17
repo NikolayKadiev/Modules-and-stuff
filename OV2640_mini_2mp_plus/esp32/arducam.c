@@ -282,15 +282,15 @@ void singleCapture(void){
    cs_select();
    set_fifo_burst();//Set fifo burst mode
    while(1){
-    spi_device_transmit(spi, &rx);
-    uart_write_bytes(UART_NUM_0, value, 64);
-    if(len_out == 0){
-        break;
-    }
     if(len_out < 64){
         rx.length=len_out*8;
         rx.rxlength=len_out*8;
         len_out = 0;
+    }
+    spi_device_transmit(spi, &rx);
+    uart_write_bytes(UART_NUM_0, value, 64);
+    if(len_out == 0){
+        break;
     }
     else{
         len_out -= 64;

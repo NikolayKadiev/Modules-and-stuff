@@ -257,8 +257,10 @@ void ov2640Init(){
 
 void singleCapture(void){
    uint8_t * value = NULL;
+   uint8_t * point_in = NULL;
    uint8_t * tx_empty = NULL;
-   int len_out = 0;
+   size_t len_out = 0;
+   gpio_set_level(FLASH_PIN, 1);
    clear_fifo_flag();
    vTaskDelay(10 / portTICK_PERIOD_MS);
    //Start capture
@@ -266,10 +268,11 @@ void singleCapture(void){
    while(!get_bit(ARDUCHIP_TRIG , CAP_DONE_MASK)){
     asm volatile("nop");
    }
-   int length = read_fifo_length();
+   size_t length = read_fifo_length();
    len_out = length;
    //printf("len = %d\n", length);
-   value = (uint8_t *)malloc(sizeof(uint8_t)*(64));
+   value = (uint8_t *)malloc(sizeof(uint8_t)*(length));
+   point_in = value;
    tx_empty = (uint8_t *)malloc(sizeof(uint8_t)*(64));
    memset(tx_empty, 0, 64);
    spi_transaction_t rx;
@@ -278,9 +281,10 @@ void singleCapture(void){
    rx.rxlength=64*8;
    rx.flags = 0;
    rx.tx_buffer = tx_empty;
-   rx.rx_buffer = value;
+   rx.rx_buffer = point_in;
    cs_select();
    set_fifo_burst();//Set fifo burst mode
+   gpio_set_level(FLASH_PIN, 0);
    while(1){
     if(len_out < 64){
         rx.length=len_out*8;
@@ -288,15 +292,17 @@ void singleCapture(void){
         len_out = 0;
     }
     spi_device_transmit(spi, &rx);
-    uart_write_bytes(UART_NUM_0, value, 64);
     if(len_out == 0){
         break;
     }
     else{
         len_out -= 64;
+        point_in += 64;
     }
+    rx.rx_buffer = point_in;
    }
    cs_deselect();
+   uart_write_bytes(UART_NUM_0, value, length);
    free(value);
    free(tx_empty);
 }

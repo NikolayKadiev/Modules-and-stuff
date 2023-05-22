@@ -16,7 +16,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 
-#define GATTC_TAG                   "EMG_SPP_CLIENT"
+#define GATTC_TAG                   "NK_SPP_CLIENT"
 #define PROFILE_NUM                 1
 #define PROFILE_APP_ID              0
 #define BT_BD_ADDR_STR              "%02x:%02x:%02x:%02x:%02x:%02x"

@@ -260,7 +260,6 @@ void singleCapture(void){
    uint8_t * point_in = NULL;
    uint8_t * tx_empty = NULL;
    size_t len_out = 0;
-   gpio_set_level(FLASH_PIN, 1);
    clear_fifo_flag();
    vTaskDelay(10 / portTICK_PERIOD_MS);
    //Start capture
@@ -284,7 +283,6 @@ void singleCapture(void){
    rx.rx_buffer = point_in;
    cs_select();
    set_fifo_burst();//Set fifo burst mode
-   gpio_set_level(FLASH_PIN, 0);
    while(1){
     if(len_out < 64){
         rx.length=len_out*8;

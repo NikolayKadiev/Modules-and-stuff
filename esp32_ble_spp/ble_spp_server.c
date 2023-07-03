@@ -117,7 +117,6 @@ void spp_cmd_task(void * arg)
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
     esp_err_t err;
-    ESP_LOGE(GATTS_TABLE_TAG, "GAP_EVT, event %d\n", event);
 
     switch (event) {
     case ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT:
@@ -268,25 +267,11 @@ void app_main(void)
     ESP_ERROR_CHECK( ret );
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
-
-    ret = esp_bt_controller_init(&bt_cfg);
-    if (ret) {
-        return;
-    }
-
-    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-    if (ret) {
-        return;
-    }
-
-    ret = esp_bluedroid_init();
-    if (ret) {
-       return;
-    }
-    ret = esp_bluedroid_enable();
-    if (ret) {
-        return;
-    }
+    
+    esp_bt_controller_init(&bt_cfg);
+    esp_bt_controller_enable(ESP_BT_MODE_BLE);
+    esp_bluedroid_init();
+    esp_bluedroid_enable();
 
     esp_ble_gatts_register_callback(gatts_event_handler);
     esp_ble_gap_register_callback(gap_event_handler);

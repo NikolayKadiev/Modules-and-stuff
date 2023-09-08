@@ -87,6 +87,9 @@ void main(void) {
     mma8452_write_reg(REG_CTRL_REG1, 1);
     
     mma8452_write_reg(REG_CTRL_REG1, 0);
+    // mma8452_write_reg(REG_CTRL_REG3, 2);
+    // mma8452_write_reg(REG_CTRL_REG4, 1);
+    // mma8452_write_reg(REG_CTRL_REG5, 1);
     mma8452_write_reg(REG_CTRL_REG1, 0b00011001);
     
     while(1){

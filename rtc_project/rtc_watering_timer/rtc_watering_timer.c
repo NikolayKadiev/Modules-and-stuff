@@ -3,12 +3,11 @@
 // 'C' source line config statements
 
 // CONFIG
-
 #pragma config FOSC = XT        // Oscillator Selection bits (XT oscillator: Crystal/resonator on RA6/OSC2/CLKOUT and RA7/OSC1/CLKIN)
 #pragma config WDTE = OFF       // Watchdog Timer Enable bit (WDT disabled)
 #pragma config PWRTE = ON       // Power-up Timer Enable bit (PWRT enabled)
 #pragma config MCLRE = ON       // RA5/MCLR/VPP Pin Function Select bit (RA5/MCLR/VPP pin function is MCLR)
-#pragma config BOREN = ON       // Brown-out Detect Enable bit (BOD enabled)
+#pragma config BOREN = OFF       // Brown-out Detect Enable bit (BOD disabled)
 #pragma config LVP = OFF        // Low-Voltage Programming Enable bit (RB4/PGM pin has digital I/O function, HV on MCLR must be used for programming)
 #pragma config CPD = OFF        // Data EE Memory Code Protection bit (Data memory code protection off)
 #pragma config CP = OFF         // Flash Program Memory Code Protection bit (Code protection off)
@@ -43,41 +42,45 @@ void main(void) {
     
     if(PORTAbits.RA2  == 0){ //set 3 days
         days = 16200;
-        watering = 400;
+        watering = 500;
     }
     
     if(PORTAbits.RA3  == 0){ //set 5 days
         days = 27000;
-        watering = 800;
+        watering = 900;
     }
     
     if(PORTAbits.RA4  == 0){ //set 7 days
         days = 37800;
-        watering = 1000;
+        watering = 1100;
     }
     
     RA1 = 0;
     
     TMR1=0x0000;
     T1CON = 0x3E;
-    __delay_ms(100);
+    
+    RB3 = 1;
+    long_delay(watering);
+    RB3 = 0;
+        
     INTCONbits.GIE = 0;
+    INTCONbits.PEIE = 1;
     PIR1bits.TMR1IF = 0;
     PIE1bits.TMR1IE = 1;
     T1CONbits.TMR1ON = 1;
     
     while(1){
         
+        for(uint16_t a = 0; a < days; a ++){
+            SLEEP();
+            RB3 = 0;
+            PIR1bits.TMR1IF = 0;
+        }  
+        
         RB3 = 1;
         long_delay(watering);
         RB3 = 0;
-        
-        for(uint16_t a = 0; a < days; a ++){
-            SLEEP();
-            NOP();
-            PIR1bits.TMR1IF = 0;
-            RB3 = 0;
-        }
         
     }
     return;

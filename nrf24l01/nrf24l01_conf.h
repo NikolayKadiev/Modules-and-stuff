@@ -26,9 +26,11 @@
 #define PIN_CSN     5
 #define PIN_CE      17
 
+spi_device_handle_t spi;
+
 static inline void set_pins(void){
     gpio_set_direction(PIN_CSN, GPIO_MODE_OUTPUT);
-	gpio_set_level(PIN_CS, 1);
+	gpio_set_level(PIN_CSN, 1);
     gpio_set_direction(PIN_CE, GPIO_MODE_OUTPUT);
 	gpio_set_level(PIN_CE, 1);
 

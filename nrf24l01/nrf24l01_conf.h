@@ -104,6 +104,7 @@ static inline void Delay_ms(uint32_t ms) {
 #define PIN_MISO    4
 #define PIN_CSN     5
 #define PIN_CE      6
+#define SPI_PORT    spi0
 
 static inline void set_pins(void){
 
@@ -138,8 +139,7 @@ static inline void nRF24_CSN_H(void) {
 
 static inline uint8_t nRF24_LL_RW(uint8_t data) {
     uint8_t value = 0;
-	spi_write_blocking(SPI_PORT, &data, 1);
-    spi_read_blocking(SPI_PORT, 0, &value, 1);
+    spi_write_read_blocking(SPI_PORT, &data, &value, 1);
 	return value;
 }
 

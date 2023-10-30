@@ -93,8 +93,9 @@ nRF24_TXResult nRF24_TransmitPacket(uint8_t *pBuf, uint8_t length) {
 void app_main(void)
 {
   
-	printf("\r\nSTM32L432KC is online.\r\n");
-
+	printf("\r\nESP32 as TX is online.\r\n");
+	set_pins();
+	Delay_ms(500);
 	// RX/TX disabled
 	nRF24_CE_L();
 
@@ -103,7 +104,7 @@ void app_main(void)
 	if (!nRF24_Check()) {
 		printf("FAIL\r\n");
 		while (1) {
-			printf("FAIL\r\n");
+			// printf("FAIL\r\n");
 			Delay_ms(50);
 		}
 	}

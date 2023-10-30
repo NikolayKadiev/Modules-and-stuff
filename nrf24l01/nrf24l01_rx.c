@@ -12,8 +12,8 @@ uint8_t payload_length;
 
 void app_main(void)
 {
-    printf("\r\nESP32 is online.\r\n");
-
+    printf("\r\nESP32 as RX is online.\r\n");
+    set_pins();
     // RX/TX disabled
     nRF24_CE_L();
 

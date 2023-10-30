@@ -44,14 +44,14 @@ static inline void set_pins(void){
     };
 
     spi_device_interface_config_t devcfg={
-            .clock_speed_hz=1*1000*1000,           
+            .clock_speed_hz= 500*1000,           
             .mode=0,                          
             .spics_io_num=-1,               
             .queue_size=150,
     };	
 
-    spi_bus_initialize(VSPI_HOST, &buscfg, 0);
-    spi_bus_add_device(VSPI_HOST, &devcfg, &spi);
+    printf("bus init %d\n", spi_bus_initialize(VSPI_HOST, &buscfg, 0));
+    printf("device add %d\n",spi_bus_add_device(VSPI_HOST, &devcfg, &spi));
 }
 
 static inline void nRF24_CE_L(void) {
@@ -78,10 +78,10 @@ static inline uint8_t nRF24_LL_RW(uint8_t data) {
     txrx.tx_buffer = NULL;
     txrx.length = 1*8;
     txrx.tx_data[0] = data;
-    txrx.rxlength = 2*8;
+    txrx.rxlength = 1*8;
 
 	spi_device_polling_transmit(spi, &txrx);
-	return txrx.rx_data[1];
+	return txrx.rx_data[0];
 }
 
 static inline void Delay_ms(uint32_t ms) {

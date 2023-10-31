@@ -242,6 +242,11 @@ void nRF24_WritePayload(uint8_t *pBuf, uint8_t length);
 void nRF24_WriteAckPayload(nRF24_RXResult pipe, char *payload, uint8_t length);
 nRF24_RXResult nRF24_ReadPayload(uint8_t *pBuf, uint8_t *length);
 nRF24_RXResult nRF24_ReadPayloadDpl(uint8_t *pBuf, uint8_t *length);
+// Set and disable IRQ
+void nRF24_SetRXIRQ(void);
+void nRF24_DisableRXIRQ(void);
+void nRF24_SetTXIRQ(void);
+void nRF24_DisableTXIRQ(void);
 
 #define nRF24_RX_ON()   nRF24_CE_H();
 #define nRF24_RX_OFF()  nRF24_CE_L();

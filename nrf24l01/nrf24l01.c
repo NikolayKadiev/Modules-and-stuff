@@ -71,7 +71,7 @@ static void nRF24_WriteMBReg(uint8_t reg, uint8_t *pBuf, uint8_t count) {
 // note: RX/TX pipe addresses remains untouched
 void nRF24_Init(void) {
 	// Write to registers their initial values
-	nRF24_WriteReg(nRF24_REG_CONFIG, 0x08);
+	nRF24_WriteReg(nRF24_REG_CONFIG, 0x78);
 	nRF24_WriteReg(nRF24_REG_EN_AA, 0x3F);
 	nRF24_WriteReg(nRF24_REG_EN_RXADDR, 0x03);
 	nRF24_WriteReg(nRF24_REG_SETUP_AW, 0x03);
@@ -509,4 +509,30 @@ void nRF24_WriteAckPayload(nRF24_RXResult pipe, char *payload, uint8_t length) {
 	}
 	nRF24_CSN_H();
 
+}
+
+// Set and disable IRQ
+void nRF24_SetRXIRQ(void){
+	uint8_t reg;
+	reg  = nRF24_ReadReg(nRF24_REG_CONFIG);
+	reg &= ~(1 << 6);
+	nRF24_WriteReg(nRF24_REG_CONFIG, reg);
+}
+void nRF24_DisableRXIRQ(void){
+	uint8_t reg;
+	reg  = nRF24_ReadReg(nRF24_REG_CONFIG);
+	reg |= (1 << 6);
+	nRF24_WriteReg(nRF24_REG_CONFIG, reg);
+}
+void nRF24_SetTXIRQ(void){
+	uint8_t reg;
+	reg  = nRF24_ReadReg(nRF24_REG_CONFIG);
+	reg &= ~(1 << 5);
+	nRF24_WriteReg(nRF24_REG_CONFIG, reg);
+}
+void nRF24_DisableTXIRQ(void){
+	uint8_t reg;
+	reg  = nRF24_ReadReg(nRF24_REG_CONFIG);
+	reg |= (1 << 5);
+	nRF24_WriteReg(nRF24_REG_CONFIG, reg);
 }

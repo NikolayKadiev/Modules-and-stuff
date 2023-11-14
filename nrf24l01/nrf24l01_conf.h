@@ -186,11 +186,13 @@ static inline void nRF24_CSN_H(void) {
 }
 
 static inline uint8_t nRF24_LL_RW(uint8_t data) {
-	return = spi_transfer(data);
+	return spi_transfer(data);
 }
 
 static inline void Delay_ms(uint32_t ms) {
-    __delay_ms(ms);
+    for(uint16_t i = 0; i < ms; i++){
+        __delay_us(990);
+    }
 }
 
 #endif

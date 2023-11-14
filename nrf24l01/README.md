@@ -2,7 +2,6 @@
 
 Testing in progress for nRF24L01 module library.
 
---
 | MCU | Function |
 |-----|----------|
 |ESP32|Tested/working|

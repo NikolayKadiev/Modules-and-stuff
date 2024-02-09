@@ -116,6 +116,11 @@ static esp_ble_adv_params_t adv_params = {
     .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
 };
 
+#define conn_latency  0;
+#define conn_max_int  0x07;    // max_int = val*1.25ms
+#define conn_min_int  0x06;    // min_int = val*1.25ms
+#define conn_timeout  200;    // timeout = val*10ms
+
 #define PROFILE_NUM 1
 #define PROFILE_A_APP_ID 0
 

@@ -12,7 +12,7 @@
 #include "driver/ledc.h"
 #include "driver/uart.h"
 
-#define servo_start_pos     820
+#define servo_start_pos     515
 #define servo_end_pos       2048
 
 QueueHandle_t uart_queue;

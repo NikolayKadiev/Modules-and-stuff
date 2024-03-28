@@ -17,16 +17,15 @@ float mma8452_convert_accel(uint16_t raw_acc) {
     return acceleration;
 }
 
-
 void mma8452_write_reg(uint8_t reg_addr, uint8_t data) {
     i2c_cmd_handle_t cmd;
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, ADDRESS | I2C_MASTER_WRITE, 1);
+    i2c_master_write_byte(cmd, MMA8452_ADDR | I2C_MASTER_WRITE, 1);
     i2c_master_write_byte(cmd, reg_addr , 1);
     i2c_master_write_byte(cmd, data , 1);      
     i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_1, cmd, 10 / portTICK_RATE_MS);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
 }
 
@@ -35,13 +34,13 @@ uint8_t mma8452_get_status(void) {
     uint8_t read = 0;
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, ADDRESS | I2C_MASTER_WRITE, 1);
+    i2c_master_write_byte(cmd, MMA8452_ADDR | I2C_MASTER_WRITE, 1);
     i2c_master_write_byte(cmd, 0x00 , 1);
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, ADDRESS | I2C_MASTER_READ, 1);   
+    i2c_master_write_byte(cmd, MMA8452_ADDR | I2C_MASTER_READ, 1);   
     i2c_master_read_byte(cmd, &read, 0);                           
     i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_1, cmd, 10 / portTICK_RATE_MS);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
     return read;
 }
@@ -52,31 +51,20 @@ uint16_t mma8452_get_result(uint8_t reg_addr) {
     uint16_t ressult = 0;
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, ADDRESS | I2C_MASTER_WRITE, 1);
+    i2c_master_write_byte(cmd, MMA8452_ADDR | I2C_MASTER_WRITE, 1);
     i2c_master_write_byte(cmd, reg_addr , 1);
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, ADDRESS | I2C_MASTER_READ, 1);  
+    i2c_master_write_byte(cmd, MMA8452_ADDR | I2C_MASTER_READ, 1);  
     i2c_master_read_byte(cmd, &read1, 1);   
     i2c_master_read_byte(cmd, &read2, 0);                           
     i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_1, cmd, 10 / portTICK_RATE_MS);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
     ressult = (read1 << 4) | (read2 >> 4);
     return ressult;
 }
 
 void mma8452_simple_init(void){
-    i2c_config_t conf;
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = 21;
-    conf.sda_pullup_en = GPIO_PULLUP_DISABLE;
-    conf.scl_io_num = 22;
-    conf.scl_pullup_en = GPIO_PULLUP_DISABLE;
-    conf.master.clk_speed = 100*1000;
-    i2c_param_config(I2C_NUM_1, &conf);
-    i2c_driver_install(I2C_NUM_1, conf.mode, 0, 0, 0);
-    gpio_set_direction(19, GPIO_MODE_INPUT);
-
     mma8452_write_reg(REG_CTRL_REG1, 0);
     mma8452_write_reg(REG_DATA_CFG, range_config);
     mma8452_write_reg(REG_CTRL_REG1, 1);
@@ -87,5 +75,3 @@ void mma8452_simple_init(void){
     mma8452_write_reg(REG_CTRL_REG5, 1);
     mma8452_write_reg(REG_CTRL_REG1, 0b00011001);
 }
-/*  main setup:
-    */

@@ -13,6 +13,9 @@
 #include "esp_gatt_common_api.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+
+#include "driver/gpio.h"
 #include "driver/uart.h"
 
 typedef struct{

@@ -116,23 +116,18 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         if (p_data->write.status != ESP_GATT_OK){
             break;
         }
-        uint8_t write_char_data[35];
-        for (int i = 0; i < sizeof(write_char_data); ++i)
-        {
-            write_char_data[i] = i % 256;
-        }
         // uint8_t write_char_data[35];
         // for (int i = 0; i < sizeof(write_char_data); ++i)
         // {
         //     write_char_data[i] = i % 256;
         // }
-        uint8_t write_char_data = 1;
+        uint8_t write_char_data = '\n';
         esp_ble_gattc_write_char( gattc_if,
                                   gl_profile_tab[PROFILE_A_APP_ID].conn_id,
                                   gl_profile_tab[PROFILE_A_APP_ID].char_handle,
                                   1,//sizeof(write_char_data),
                                   &write_char_data,
-                                  ESP_GATT_WRITE_TYPE_RSP,
+                                  ESP_GATT_WRITE_TYPE_NO_RSP,
                                   ESP_GATT_AUTH_REQ_NONE);
         break;
     case ESP_GATTC_SRVC_CHG_EVT: {

@@ -16,11 +16,13 @@
 #include "esp_bt_main.h"
 #include "esp_gatt_common_api.h"
 
+#include "driver/gpio.h"
 #include "driver/uart.h"
-#include "sdkconfig.h"
 
 #define GATTS_TAG "ESP_SERVER"
 
+adc_oneshot_unit_handle_t adc2_handle;
+adc_oneshot_unit_init_cfg_t init_config2;
 
 typedef struct{
     esp_gatt_if_t   gatt_if;
@@ -31,6 +33,7 @@ typedef struct{
 esp_gatt_wr_elem_t wr_elements;
 uint8_t is_connect = 0;
 QueueHandle_t uart_queue = NULL;
+QueueHandle_t pic_queue = NULL;
 
 ///Declare the static function
 static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
@@ -42,7 +45,7 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
 #define GATTS_NUM_HANDLE_TEST_A     4
 
 
-#define TEST_DEVICE_NAME            "NK_ESP_SERVER"
+#define TEST_DEVICE_NAME            "NK_SERVER" 
 #define TEST_MANUFACTURER_DATA_LEN  17
 
 #define GATTS_DEMO_CHAR_VAL_LEN_MAX 0x40
@@ -70,37 +73,37 @@ static uint8_t adv_service_uuid128[32] = {
 };
 
 // The length of adv data must be less than 31 bytes
-//static uint8_t test_manufacturer[TEST_MANUFACTURER_DATA_LEN] =  {0x12, 0x23, 0x45, 0x56};
+static uint8_t test_manufacturer[3] =  {0xFF, 0xFF, 0x01};
 //adv data
 static esp_ble_adv_data_t adv_data = {
-    .set_scan_rsp = false,
-    .include_name = true,
-    .include_txpower = false,
-    .min_interval = 0x0006, //slave connection min interval, Time = min_interval * 1.25 msec
-    .max_interval = 0x0007, //slave connection max interval, Time = max_interval * 1.25 msec
+    .set_scan_rsp = false, //true,
+    .include_name = false, //true,
+    .include_txpower = false, //true,
+    .min_interval = 0, //0x0006, //slave connection min interval, Time = min_interval * 1.25 msec
+    .max_interval = 0, //0x0007, //slave connection max interval, Time = max_interval * 1.25 msec
     .appearance = 0x00,
-    .manufacturer_len = 0, //TEST_MANUFACTURER_DATA_LEN,
-    .p_manufacturer_data =  NULL, //&test_manufacturer[0],
+    .manufacturer_len = 3, //TEST_MANUFACTURER_DATA_LEN,
+    .p_manufacturer_data =  test_manufacturer,
     .service_data_len = 0,
     .p_service_data = NULL,
-    .service_uuid_len = sizeof(adv_service_uuid128),
-    .p_service_uuid = adv_service_uuid128,
+    .service_uuid_len = 0, //sizeof(adv_service_uuid128),
+    .p_service_uuid = NULL, //adv_service_uuid128,
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
 // scan response data
 static esp_ble_adv_data_t scan_rsp_data = {
     .set_scan_rsp = true,
     .include_name = true,
-    .include_txpower = true,
+    .include_txpower = false, //true,
     //.min_interval = 0x0006,
     //.max_interval = 0x0010,
     .appearance = 0x00,
     .manufacturer_len = 0, //TEST_MANUFACTURER_DATA_LEN,
-    .p_manufacturer_data =  NULL, //&test_manufacturer[0],
+    .p_manufacturer_data =  NULL, //test_manufacturer,
     .service_data_len = 0,
     .p_service_data = NULL,
-    .service_uuid_len = sizeof(adv_service_uuid128),
-    .p_service_uuid = adv_service_uuid128,
+    .service_uuid_len = 0, //sizeof(adv_service_uuid128),
+    .p_service_uuid = NULL, //adv_service_uuid128,
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
 

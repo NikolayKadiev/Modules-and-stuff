@@ -3,32 +3,39 @@
 
 static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param)
 {
+    uint8_t go_now = 0xAA;
     esp_ble_gattc_cb_param_t *p_data = (esp_ble_gattc_cb_param_t *)param;
 
     switch (event) {
     case ESP_GATTC_REG_EVT:
+        ESP_LOGI(TAG, "ESP_GATTC_REG_EVT");
         esp_ble_gap_set_scan_params(&ble_scan_params);
         break;
     case ESP_GATTC_CONNECT_EVT:{
+        ESP_LOGI(TAG, "ESP_GATTC_CONNECT_EVT");
         memcpy(gl_profile_tab[PROFILE_A_APP_ID].remote_bda, p_data->connect.remote_bda, sizeof(esp_bd_addr_t));
         esp_ble_gattc_send_mtu_req (gattc_if, p_data->connect.conn_id);
 
         break;
     }
     case ESP_GATTC_OPEN_EVT:
+        ESP_LOGI(TAG, "ESP_GATTC_OPEN_EVT");
         if (param->open.status != ESP_GATT_OK){
             break;
         }
         break;
     case ESP_GATTC_DIS_SRVC_CMPL_EVT:
+        ESP_LOGI(TAG, "ESP_GATTC_DIS_SRVC_CMPL_EVT");
         if (param->dis_srvc_cmpl.status != ESP_GATT_OK){
             break;
         }
         esp_ble_gattc_search_service(gattc_if, param->cfg_mtu.conn_id, &remote_filter_service_uuid);
         break;
     case ESP_GATTC_CFG_MTU_EVT:
+        ESP_LOGI(TAG, "ESP_GATTC_CFG_MTU_EVT");
         break;
     case ESP_GATTC_SEARCH_RES_EVT: {
+        ESP_LOGI(TAG, "ESP_GATTC_SEARCH_RES_EVT");
         if (p_data->search_res.srvc_id.uuid.len == ESP_UUID_LEN_16 && p_data->search_res.srvc_id.uuid.uuid.uuid16 == REMOTE_SERVICE_UUID) {
             get_server = true;
             gl_profile_tab[PROFILE_A_APP_ID].service_start_handle = p_data->search_res.start_handle;
@@ -37,29 +44,39 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         break;
     }
     case ESP_GATTC_SEARCH_CMPL_EVT:
+        ESP_LOGI(TAG, "ESP_GATTC_SEARCH_CMPL_EVT");
         if (p_data->search_cmpl.status != ESP_GATT_OK){
             break;
         }
         if (get_server){
             uint16_t count = 0;
-            esp_ble_gattc_get_attr_count( gattc_if,
+            esp_gatt_status_t status = esp_ble_gattc_get_attr_count( gattc_if,
                                                                      p_data->search_cmpl.conn_id,
                                                                      ESP_GATT_DB_CHARACTERISTIC,
                                                                      gl_profile_tab[PROFILE_A_APP_ID].service_start_handle,
                                                                      gl_profile_tab[PROFILE_A_APP_ID].service_end_handle,
                                                                      INVALID_HANDLE,
                                                                      &count);
-
+            if (status != ESP_GATT_OK){
+                break;
+            }
             if (count > 0){
                 char_elem_result = (esp_gattc_char_elem_t *)malloc(sizeof(esp_gattc_char_elem_t) * count);
-                esp_ble_gattc_get_char_by_uuid( gattc_if,
+                if (!char_elem_result){
+                    break;
+                }
+                status = esp_ble_gattc_get_char_by_uuid( gattc_if,
                                                             p_data->search_cmpl.conn_id,
                                                             gl_profile_tab[PROFILE_A_APP_ID].service_start_handle,
                                                             gl_profile_tab[PROFILE_A_APP_ID].service_end_handle,
                                                             remote_filter_char_uuid,
                                                             char_elem_result,
                                                             &count);
-
+                    if (status != ESP_GATT_OK){
+                        free(char_elem_result);
+                        char_elem_result = NULL;
+                        break;
+                    }
                 /*  Every service have only one char in our 'ESP_GATTS_DEMO' demo, so we used first 'char_elem_result' */
                 if (count > 0 && (char_elem_result[0].properties & ESP_GATT_CHAR_PROP_BIT_NOTIFY)){
                     gl_profile_tab[PROFILE_A_APP_ID].char_handle = char_elem_result[0].char_handle;
@@ -71,24 +88,35 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         }
          break;
     case ESP_GATTC_REG_FOR_NOTIFY_EVT: {
+        ESP_LOGI(TAG, "ESP_GATTC_REG_FOR_NOTIFY_EVT");
         uint16_t count = 0;
         uint16_t notify_en = 1;
-        esp_ble_gattc_get_attr_count( gattc_if,
+        esp_gatt_status_t ret_status = esp_ble_gattc_get_attr_count( gattc_if,
                                                                     gl_profile_tab[PROFILE_A_APP_ID].conn_id,
                                                                     ESP_GATT_DB_DESCRIPTOR,
                                                                     gl_profile_tab[PROFILE_A_APP_ID].service_start_handle,
                                                                     gl_profile_tab[PROFILE_A_APP_ID].service_end_handle,
                                                                     gl_profile_tab[PROFILE_A_APP_ID].char_handle,
                                                                     &count);
+        if (ret_status != ESP_GATT_OK){
+            break;
+        }
         if (count > 0){
             descr_elem_result = malloc(sizeof(esp_gattc_descr_elem_t) * count);
-
-            esp_ble_gattc_get_descr_by_char_handle( gattc_if,
+            if (!descr_elem_result){
+                    break;
+            }
+            ret_status = esp_ble_gattc_get_descr_by_char_handle( gattc_if,
                                                                 gl_profile_tab[PROFILE_A_APP_ID].conn_id,
                                                                 p_data->reg_for_notify.handle,
                                                                 notify_descr_uuid,
                                                                 descr_elem_result,
                                                                 &count);
+            if (ret_status != ESP_GATT_OK){
+                free(descr_elem_result);
+                descr_elem_result = NULL;
+                break;
+            }
             /* Every char has only one descriptor in our 'ESP_GATTS_DEMO' demo, so we used first 'descr_elem_result' */
             if (count > 0 && descr_elem_result[0].uuid.len == ESP_UUID_LEN_16 && descr_elem_result[0].uuid.uuid.uuid16 == ESP_GATT_UUID_CHAR_CLIENT_CONFIG){
                 esp_ble_gattc_write_char_descr( gattc_if,
@@ -108,11 +136,12 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         break;
     }
     case ESP_GATTC_NOTIFY_EVT:
-
+        ESP_LOGI(TAG, "ESP_GATTC_NOTIFY_EVT");
         uart_write_bytes(UART_NUM_0, (char *)(p_data->notify.value), p_data->notify.value_len);
-        
+        // xQueueSend(msg_queue, &go_now, 0);
         break;
     case ESP_GATTC_WRITE_DESCR_EVT:
+        ESP_LOGI(TAG, "ESP_GATTC_WRITE_DESCR_EVT");
         if (p_data->write.status != ESP_GATT_OK){
             break;
         }
@@ -131,19 +160,22 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
                                   ESP_GATT_AUTH_REQ_NONE);
         break;
     case ESP_GATTC_SRVC_CHG_EVT: {
+        ESP_LOGI(TAG, "ESP_GATTC_SRVC_CHG_EVT");
         esp_bd_addr_t bda;
         memcpy(bda, p_data->srvc_chg.remote_bda, sizeof(esp_bd_addr_t));
         break;
     }
     case ESP_GATTC_WRITE_CHAR_EVT:
+        ESP_LOGI(TAG, "ESP_GATTC_WRITE_CHAR_EVT");
         wr_elements.char_handle = gl_profile_tab[PROFILE_A_APP_ID].char_handle;
         wr_elements.conn_id = gl_profile_tab[PROFILE_A_APP_ID].conn_id;//param->write.conn_id;
         wr_elements.gatt_if = gattc_if;
-        connect = 1;
+        ble_connect = 1;
 
         break;
     case ESP_GATTC_DISCONNECT_EVT:
-        connect = false;
+        ESP_LOGI(TAG, "ESP_GATTC_DISCONNECT_EVT");
+        ble_connect = false;
         get_server = false;
         break;
     default:
@@ -157,12 +189,14 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
     uint8_t adv_name_len = 0;
     switch (event) {
     case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT: {
+        ESP_LOGI(TAG, "ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT");
         //the unit of the duration is second
         uint32_t duration = 30;
         esp_ble_gap_start_scanning(duration);
         break;
     }
     case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
+        ESP_LOGI(TAG, "ESP_GAP_BLE_SCAN_START_COMPLETE_EVT");
         //scan start complete event to indicate scan start successfully or failed
         if (param->scan_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {
             break;
@@ -170,16 +204,18 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
 
         break;
     case ESP_GAP_BLE_SCAN_RESULT_EVT: {
+        ESP_LOGI(TAG, "ESP_GAP_BLE_SCAN_RESULT_EVT");
         esp_ble_gap_cb_param_t *scan_result = (esp_ble_gap_cb_param_t *)param;
         switch (scan_result->scan_rst.search_evt) {
         case ESP_GAP_SEARCH_INQ_RES_EVT:
+        ESP_LOGI(TAG, "ESP_GAP_SEARCH_INQ_RES_EVT");
         adv_name = esp_ble_resolve_adv_data(scan_result->scan_rst.ble_adv,
                                                 ESP_BLE_AD_TYPE_NAME_CMPL, &adv_name_len);
 
             if (adv_name != NULL) {
                 if (strlen(remote_device_name) == adv_name_len && strncmp((char *)adv_name, remote_device_name, adv_name_len) == 0) {
-                    if (connect == false) {
-                        connect = true;
+                    if (ble_connect == false) {
+                        ble_connect = true;
                         esp_ble_gap_stop_scanning();
                         esp_ble_gattc_open(gl_profile_tab[PROFILE_A_APP_ID].gattc_if, scan_result->scan_rst.bda, scan_result->scan_rst.ble_addr_type, true);
                     }
@@ -187,6 +223,7 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
             }
             break;
         case ESP_GAP_SEARCH_INQ_CMPL_EVT:
+        ESP_LOGI(TAG, "ESP_GAP_SEARCH_INQ_CMPL_EVT");
             break;
         default:
             break;
@@ -195,17 +232,20 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
     }
 
     case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
+        ESP_LOGI(TAG, "ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT");
         if (param->scan_stop_cmpl.status != ESP_BT_STATUS_SUCCESS){
             break;
         }
         break;
 
     case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
+        ESP_LOGI(TAG, "ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT");
         if (param->adv_stop_cmpl.status != ESP_BT_STATUS_SUCCESS){
             break;
         }
         break;
     case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT:
+        ESP_LOGI(TAG, "ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT");
         break;
     default:
         break;
@@ -243,11 +283,11 @@ void uart_task(void *pvParameters){
 
     for (;;) {
         //Waiting for UART event.
-        if (xQueueReceive(uart_queue, (void * )&event, (portTickType)portMAX_DELAY)) {
+        if (xQueueReceive(uart_queue, (void * )&event, 100 / portTICK_PERIOD_MS)) {
             switch (event.type) {
             //Event of UART receving data
             case UART_DATA:
-                if ((event.size)&&(connect)) {
+                if ((event.size)&&(ble_connect)) {
                     uint8_t * temp = NULL;
                     temp = (uint8_t *)malloc(sizeof(uint8_t)*event.size);
                     if(temp == NULL){
@@ -275,6 +315,24 @@ void uart_task(void *pvParameters){
 
 void app_main(void)
 {
+
+    uart_config_t uart_config = {
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_RTS,
+        .rx_flow_ctrl_thresh = 122,
+        .source_clk = UART_SCLK_APB,
+    };
+    //Install UART driver, and get the queue.
+    uart_driver_install(UART_NUM_0, 4096, 8192, 10,&uart_queue,0);
+    //Set UART parameters
+    uart_param_config(UART_NUM_0, &uart_config);
+    //Set UART pins
+    uart_set_pin(UART_NUM_0, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    xTaskCreate(uart_task, "uTask", 5*1024, (void*)UART_NUM_0, 8, NULL);
+    printf("Searching for device!\n");
     // Initialize NVS.
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -286,30 +344,28 @@ void app_main(void)
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     esp_bt_controller_init(&bt_cfg);
     esp_bt_controller_enable(ESP_BT_MODE_BLE);
-    esp_bluedroid_init();
+    esp_bluedroid_config_t bluedroid_cfg = BT_BLUEDROID_INIT_CONFIG_DEFAULT();
+    ret = esp_bluedroid_init_with_cfg(&bluedroid_cfg);
     esp_bluedroid_enable();
     //register the  callback function to the gap module
     esp_ble_gap_register_callback(esp_gap_cb);
     //register the callback function to the gattc module
     esp_ble_gattc_register_callback(esp_gattc_cb);
     esp_ble_gattc_app_register(PROFILE_A_APP_ID);
-    esp_ble_gatt_set_local_mtu(500);
+    esp_ble_gatt_set_local_mtu(510);
 
-    uart_config_t uart_config = {
-        .baud_rate = 115200,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_RTS,
-        .rx_flow_ctrl_thresh = 122,
-        .source_clk = UART_SCLK_APB,
-    };
-
-    //Install UART driver, and get the queue.
-    uart_driver_install(UART_NUM_0, 4096, 8192, 10,&uart_queue,0);
-    //Set UART parameters
-    uart_param_config(UART_NUM_0, &uart_config);
-    //Set UART pins
-    uart_set_pin(UART_NUM_0, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-    xTaskCreate(uart_task, "uTask", 2048, (void*)UART_NUM_0, 8, NULL);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
+    if(!ble_connect){
+        esp_sleep_enable_timer_wakeup( 700 * 1000);
+        esp_deep_sleep_start();
+    }
+    printf("Device connected!\n");
+    while(1){
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        if(!ble_connect){
+            esp_sleep_enable_timer_wakeup( 700 * 1000);
+            esp_deep_sleep_start();
+        }
+    }
+   
 }

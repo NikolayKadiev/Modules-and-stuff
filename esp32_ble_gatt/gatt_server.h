@@ -21,9 +21,6 @@
 
 #define GATTS_TAG "ESP_SERVER"
 
-adc_oneshot_unit_handle_t adc2_handle;
-adc_oneshot_unit_init_cfg_t init_config2;
-
 typedef struct{
     esp_gatt_if_t   gatt_if;
     uint16_t        conn_id;

@@ -18,10 +18,6 @@
 #include "driver/gpio.h"
 #include "driver/uart.h"
 
-#define SCAN_REAS_NUM 0
-#define SCAN_REAS_BUTT 1
-#define SCAN_REAS_USE SCAN_REAS_BUTT
-
 typedef struct{
     esp_gatt_if_t   gatt_if;
     uint16_t        conn_id;
@@ -30,14 +26,6 @@ typedef struct{
 
 esp_gatt_wr_elem_t wr_elements;
 QueueHandle_t uart_queue = NULL;
-
-typedef struct{
-    uint8_t             ble_data_len;
-    uint8_t             ble_adv_data[20];
-    esp_bd_addr_t       ble_mac_adr;
-    esp_ble_addr_type_t ble_ad_type;
-}esp_ble_data_point;
-
 
 #define GATTC_TAG                  "NK_ESP_CLIENT"
 #define REMOTE_SERVICE_UUID        0x00FF
@@ -48,10 +36,7 @@ typedef struct{
 
 static const char remote_device_name[] = "NK_SERVER";
 static bool ble_connect  = false;
-static bool ble_rdy      = false;
 static bool get_server   = false;
-static bool ble_scan_rdy = false;
-static bool ble_scan_cpl = false;
 static esp_gattc_char_elem_t *char_elem_result   = NULL;
 static esp_gattc_descr_elem_t *descr_elem_result = NULL;
 

@@ -3,10 +3,19 @@
 spi_device_handle_t spi;
 
 void set_pins(void){
+    gpio_reset_pin(PIN_SCK);
+    gpio_reset_pin(PIN_MOSI);
+    gpio_reset_pin(PIN_MISO);
+    gpio_reset_pin(PIN_CSN);
+    gpio_reset_pin(PIN_CE);
+    gpio_reset_pin(PIN_IRQ);
+
     gpio_set_direction(PIN_CSN, GPIO_MODE_OUTPUT);
 	gpio_set_level(PIN_CSN, 1);
     gpio_set_direction(PIN_CE, GPIO_MODE_OUTPUT);
 	gpio_set_level(PIN_CE, 1);
+    gpio_set_direction(15, GPIO_MODE_OUTPUT);
+	gpio_set_level(15, 0);
     
     gpio_set_direction(PIN_IRQ, GPIO_MODE_INPUT);
 
@@ -16,11 +25,12 @@ void set_pins(void){
             .sclk_io_num=PIN_SCK,
             .quadwp_io_num=-1,
             .quadhd_io_num=-1,
-            .max_transfer_sz=100,
+            .max_transfer_sz=150,
     };
 
     spi_device_interface_config_t devcfg={
-            .clock_speed_hz= 500*1000,           
+            .clock_source = SPI_CLK_SRC_XTAL,
+            .clock_speed_hz= 1*1000*1000,           
             .mode=0,                          
             .spics_io_num=-1,               
             .queue_size=150,

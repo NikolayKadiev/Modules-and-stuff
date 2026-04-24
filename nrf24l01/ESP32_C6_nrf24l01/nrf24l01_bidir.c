@@ -10,7 +10,11 @@
 #define FIRST_TX  1 // 1 - first do Tx and send data, 0 - do  Rx and wait for data
 
 uint8_t nRF24_payload[32];
-uint8_t nRF24_msg[] ={"NRF24\n"};
+// uint8_t nRF24_msg[] ={"NRF24\n"};
+uint8_t nRF24_msg[10];
+uint8_t nRF24_ack[10] = {'A', 'C', 'K', '\n', '\r'};
+uint8_t var_send = 0;
+char oled_txt[50];
 
 // Pipe number
 nRF24_RXResult pipe;
@@ -98,6 +102,7 @@ nRF24_TXResult nRF24_TransmitPacket(uint8_t *pBuf, uint8_t length) {
 
 void app_main(void)
 {
+	uint8_t ack_flag = 0, retry_num = 0;
   
 	printf("\r\nESP32 as TX-RX is online.\r\n");
 
@@ -140,15 +145,17 @@ void app_main(void)
 	
 	OLED_SetCursor(1,1);
 	OLED_DisplayString("OK\r\n");
+	Delay_ms(500);
 
 	// Initialize the nRF24L01 to its default state
 	nRF24_Init();
+	Delay_ms(500);
 
     // Disable ShockBurst for all RX pipes
     nRF24_DisableAA(0xFF);
 
     // Set RF channel
-    nRF24_SetRFChannel(115);
+    nRF24_SetRFChannel(100);
 
     // Set data rate
     nRF24_SetDataRate(nRF24_DR_250kbps);
@@ -168,6 +175,8 @@ void app_main(void)
     static const uint8_t nRF24_ADDR_TX[] = { 0xE7, 0x1C, 0x3E };
     static const uint8_t nRF24_ADDR_RX[] = { 0xE7, 0x1C, 0xE3 };
 	#endif
+
+	nRF24_SetTXPower(nRF24_TXPWR_0dBm);
 
     // Configure TX PIPE
     nRF24_SetAddr(nRF24_PIPETX, nRF24_ADDR_TX); // program TX address
@@ -189,44 +198,23 @@ void app_main(void)
     j = 0;
     payload_length = 5;
 	Delay_ms(500);
+
 	#if FIRST_TX == 1
+		var_send = 10;
 		nRF24_CE_L();
 		nRF24_SetOperationalMode(nRF24_MODE_TX);
 		nRF24_CE_H();
-		// Print a payload
-		printf("PAYLOAD:> %s < ... TX: \n", (char *)nRF24_msg);
-
-		// Transmit a packet
-		tx_res = nRF24_TransmitPacket(nRF24_msg, payload_length);
-		switch (tx_res) {
-			case nRF24_TX_SUCCESS:
-				printf("OK\n");
-				break;
-			case nRF24_TX_TIMEOUT:
-				printf("TIMEOUT\n");
-				break;
-			case nRF24_TX_MAXRT:
-				printf("MAX RETRANSMIT\n");
-				break;
-			default:
-				printf("ERROR\n");
-				break;
-		}
-		printf("\r\n");
-		nRF24_CE_L();
-		nRF24_SetOperationalMode(nRF24_MODE_RX);
-		nRF24_CE_H();
 	#endif
 
+	retry_num = 0;
+
     while (1) {
-        //
-        // Constantly poll the status of the RX FIFO and get a payload if FIFO is not empty
-        //
-        // This is far from best solution, but it's ok for testing purposes
-        // More smart way is to use the IRQ pin :)
-        //
-    
-        if (nRF24_GetStatus_RXFIFO() != nRF24_STATUS_RXFIFO_EMPTY) {
+
+
+	#if FIRST_TX == 0
+	if (nRF24_GetStatus_RXFIFO() != nRF24_STATUS_RXFIFO_EMPTY) {
+			
+			gpio_set_level(15, 0);
             // Get a payload from the transceiver
             pipe = nRF24_ReadPayload(nRF24_payload, &payload_length);
             // Clear all pending IRQ flags
@@ -236,22 +224,28 @@ void app_main(void)
             printf(" PAYLOAD:>%s\n", (char *)nRF24_payload);
             printf("<\r\n");
 			
+			sprintf(oled_txt, "Rx: %s\n", (char *)nRF24_payload);
 			OLED_SetCursor(3,1);
-			OLED_DisplayString((char *)nRF24_payload);
+			OLED_DisplayString(oled_txt);
 
-			Delay_ms(500);
+			gpio_set_level(15, 1);		
+			
+			var_send ++;
+			sprintf((char *) nRF24_msg, "%05d\n", var_send);
 
+			printf("PAYLOAD:> %s < ... TX: \n", (char *)nRF24_msg);
+			
 			nRF24_CE_L();
 			nRF24_SetOperationalMode(nRF24_MODE_TX);
 			nRF24_CE_H();
-			// Print a payload
-			printf("PAYLOAD:> %s < ... TX: \n", (char *)nRF24_payload);
-			
+
+			sprintf(oled_txt, "Sending: %s\n", (char *)nRF24_ack);
 			OLED_SetCursor(5,1);
-			OLED_DisplayString((char *)nRF24_payload);
+			OLED_DisplayString((char *)oled_txt);
 
 			// Transmit a packet
-			tx_res = nRF24_TransmitPacket(nRF24_payload, payload_length);
+			// tx_res = nRF24_TransmitPacket(nRF24_payload, payload_length);
+			tx_res = nRF24_TransmitPacket(nRF24_ack, 5);
 			switch (tx_res) {
 				case nRF24_TX_SUCCESS:
 					printf("OK\n");
@@ -270,11 +264,93 @@ void app_main(void)
 			nRF24_CE_L();
 			nRF24_SetOperationalMode(nRF24_MODE_RX);
 			nRF24_CE_H();
+			Delay_ms(10);
 
         }
 		else{
-			Delay_ms(10);
+			Delay_ms(100);
 		}
+	#endif
+
+	#if FIRST_TX == 1
+		// Print a payload
+		sprintf((char *) nRF24_msg, "%05d\n", var_send);
+
+		printf("PAYLOAD:> %s < ... TX: \n", (char *)nRF24_msg);
+		
+		sprintf(oled_txt, "Sending: %s\n", (char *)nRF24_msg);
+		OLED_SetCursor(3,1);
+		OLED_DisplayString((char *)oled_txt);
+
+		// Transmit a packet
+		// tx_res = nRF24_TransmitPacket(nRF24_payload, payload_length);
+		tx_res = nRF24_TransmitPacket(nRF24_msg, 5);
+		switch (tx_res) {
+			case nRF24_TX_SUCCESS:
+				printf("OK\n");
+				break;
+			case nRF24_TX_TIMEOUT:
+				printf("TIMEOUT\n");
+				break;
+			case nRF24_TX_MAXRT:
+				printf("MAX RETRANSMIT\n");
+				break;
+			default:
+				printf("ERROR\n");
+				break;
+		}
+		printf("\r\n");
+		
+		nRF24_CE_L();
+		nRF24_SetOperationalMode(nRF24_MODE_RX);
+		nRF24_CE_H();
+		ack_flag = 0;
+
+		for(uint8_t i = 0; i < 30; i++){
+			if (nRF24_GetStatus_RXFIFO() != nRF24_STATUS_RXFIFO_EMPTY) {
+				gpio_set_level(15, 0);
+				// Get a payload from the transceiver
+				pipe = nRF24_ReadPayload(nRF24_payload, &payload_length);
+				// Clear all pending IRQ flags
+				nRF24_ClearIRQFlags();
+				// Print a payload contents to UART
+				printf("RCV PIPE# %d\n", pipe);
+				printf(" PAYLOAD:>%s\n", (char *)nRF24_payload);
+				printf("<\r\n");
+				
+				sprintf(oled_txt, "Rx:       %s\n", (char *)nRF24_payload);
+				OLED_SetCursor(5,1);
+				OLED_DisplayString(oled_txt);
+
+				gpio_set_level(15, 1);	
+				ack_flag = 1;
+				retry_num = 0;
+				break; 	
+			}
+			Delay_ms(100);
+		}
+		
+		if(ack_flag == 0){
+			sprintf(oled_txt, "Rx: FAILED %d      \n", retry_num);
+			OLED_SetCursor(5,1);
+			OLED_DisplayString(oled_txt);
+			retry_num ++;
+			if(retry_num == 4){
+				retry_num = 0;
+				var_send ++;
+			}
+		}
+		
+		else{
+			var_send ++;
+		}
+		nRF24_CE_L();
+		nRF24_SetOperationalMode(nRF24_MODE_TX);
+		nRF24_CE_H();
+
+		Delay_ms(1000);
+		
+	#endif
     }
     
 }
